@@ -1,0 +1,37 @@
+<Window x:Class="DeepSeekAgent.Desktop.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
+        Title="DeepSeek Agent Desktop"
+        Height="860" Width="1360" MinWidth="960" MinHeight="600"
+        WindowStyle="None" ResizeMode="CanResize"
+        WindowStartupLocation="CenterScreen"
+        Background="#EDF0F5" FontFamily="Segoe UI"
+        UseLayoutRounding="True" SnapsToDevicePixels="True">
+
+  <!--
+    自绘标题栏（WindowStyle="None"）。标题栏的按钮和拖拽都在 WebView2 里，
+    经 WebBridge 的 {t:"win"} 绕回 C# 执行 —— 见 MainWindow.xaml.cs。
+
+    WindowChrome 是 WPF 自带的（System.Windows.Shell），不是第三方库，
+    零依赖的约束没破。它负责两件事：
+      1. ResizeBorderThickness 给窗口留出可命中的缩放边框；
+      2. CaptionHeight=0 表示不占用标题栏命中区（拖拽我们自己在 JS 里做）。
+    关键点：WebView2 是独立的子 HWND，会吃掉落在它身上的 WM_NCHITTEST，
+    所以**必须给 WebView2 留一圈边距**（见下面 Margin="6"）—— 那一圈是
+    WPF 自己的表面，缩放才点得到。窗口底色取页面的浅灰底，这一圈几乎看不出来。
+
+    没有用 AllowsTransparency="True"：那会走分层窗口，对 600 块列表是负收益。
+    单纯 WindowStyle="None" 不影响 WebView2 的硬件合成。
+  -->
+  <WindowChrome.WindowChrome>
+    <WindowChrome CaptionHeight="0" ResizeBorderThickness="6"
+                  GlassFrameThickness="0" CornerRadius="0"
+                  UseAeroCaptionButtons="False"/>
+  </WindowChrome.WindowChrome>
+
+  <Grid>
+    <!-- DefaultBackgroundColor 设成窗口底色，避免加载瞬间的白闪 -->
+    <wv2:WebView2 x:Name="Web" Margin="6" DefaultBackgroundColor="#EDF0F5"/>
+  </Grid>
+</Window>

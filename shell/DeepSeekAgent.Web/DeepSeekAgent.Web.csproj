@@ -1,0 +1,59 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    DeepSeek Agent Desktop · WebView2 外壳 —— **本项目是唯一主线外壳**。
+    WPF 外壳已于 2026-10-20 归档到 shell/_archive/wpf-shell/，不再维护、不再构建。
+
+    宿主层从 shell/Shared/ 链接复用（AgentHost / EngineClient / DeltaPacer /
+    StatusLogThrottle / LogRetention / FishTts）。这些文件与 UI 技术无关：
+    只依赖 Dispatcher（属 WindowsBase，不是 WPF UI 类型）与 System.Net.Http。
+    原文件一个字不改，**Shared/ 是它们的唯一归属地**。
+
+    RootNamespace 必须是 DeepSeekAgent.Desktop —— Shared/ 里的文件写的是
+    这个 namespace，改成别的就得动原文件，违背「零改动复用」。
+    namespace 只是代码标识符，不代表哪个壳是主线；主线看本文件所在目录。
+  -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>DeepSeekAgent.Web</AssemblyName>
+    <RootNamespace>DeepSeekAgent.Desktop</RootNamespace>
+    <Version>0.1.0</Version>
+    <Company>moxiuren</Company>
+    <Product>DeepSeek Agent Desktop (WebView2)</Product>
+    <LangVersion>latest</LangVersion>
+    <ApplicationIcon>..\Shared\Assets\app.ico</ApplicationIcon>
+    <EnableDefaultApplicationDefinition>false</EnableDefaultApplicationDefinition>
+    <EnableDefaultPageItems>false</EnableDefaultPageItems>
+  </PropertyGroup>
+
+  <!-- 复用宿主层：与 UI 技术无关，零改动链接 -->
+  <ItemGroup>
+    <Compile Include="..\Shared\AgentHost.cs" Link="Shared\AgentHost.cs" />
+    <Compile Include="..\Shared\EngineClient.cs" Link="Shared\EngineClient.cs" />
+    <Compile Include="..\Shared\DeltaPacer.cs" Link="Shared\DeltaPacer.cs" />
+    <Compile Include="..\Shared\StatusLogThrottle.cs" Link="Shared\StatusLogThrottle.cs" />
+    <Compile Include="..\Shared\LogRetention.cs" Link="Shared\LogRetention.cs" />
+    <!-- Fish 朗读：宿主侧 HTTP 调用 + 配置存储。只依赖 System.Net.Http，
+         与 UI 技术无关，独立成件以便离线自测（见 shell/selftest/FishTtsTest）。 -->
+    <Compile Include="..\Shared\FishTts.cs" Link="Shared\FishTts.cs" />
+  </ItemGroup>
+
+  <!-- 应用定义与窗口 -->
+  <ItemGroup>
+    <ApplicationDefinition Include="App.xaml" />
+    <Page Include="MainWindow.xaml" />
+  </ItemGroup>
+
+  <!-- 前端资源：原样复制到输出目录，WebView2 从磁盘加载 -->
+  <ItemGroup>
+    <Content Include="Assets\web\**\*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4258.31" />
+  </ItemGroup>
+
+</Project>

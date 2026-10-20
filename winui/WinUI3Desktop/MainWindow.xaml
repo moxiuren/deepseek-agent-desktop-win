@@ -1,0 +1,33 @@
+<Window
+    x:Class="DeepSeekAgent.WinUI3.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="DeepSeek Agent Desktop (WinUI3)">
+    <Grid RowDefinitions="Auto,*" Padding="12" RowSpacing="8">
+        <!-- 骨架占位：对照 WPF 版顶栏（标识 + 会话名 + 健康胶囊） -->
+        <StackPanel Orientation="Horizontal" Spacing="8">
+            <Border Width="20" Height="20" CornerRadius="4"
+                    Background="{ThemeResource HotAccent}">
+                <TextBlock Text="DS" FontSize="9" FontWeight="Bold"
+                           Foreground="White" TextAlignment="Center"
+                           VerticalAlignment="Center"/>
+            </Border>
+            <TextBlock x:Name="TxtTitle" Text="对话流"
+                       FontSize="13" FontWeight="SemiBold"
+                       VerticalAlignment="Center"/>
+            <InfoBadge x:Name="HealthBadge" Value="0"/>
+        </StackPanel>
+        <!-- 对话流：正式版用 ItemsRepeater + 数据绑定做虚拟化。
+             WPF 版是直接往 StackPanel.Children 塞控件（无虚拟化的根因），
+             这里从第一天就按虚拟化写，不走回头路。 -->
+        <ScrollViewer Grid.Row="1">
+            <ItemsRepeater x:Name="TranscriptList">
+                <ItemsRepeater.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding}" TextWrapping="WrapWholeWords"/>
+                    </DataTemplate>
+                </ItemsRepeater.ItemTemplate>
+            </ItemsRepeater>
+        </ScrollViewer>
+    </Grid>
+</Window>

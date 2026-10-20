@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    WinUI 3 新壳（feature/winui3-shell）。老 WPF 壳在 shell/ 原样保留。
+    打包形态：非打包（unpackaged，自带 Windows App SDK 运行时），
+    双击即跑，不写注册表 —— 与现有 .bat 启动器思路一致。
+  -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+    <RootNamespace>DeepSeekAgent.WinUI3</RootNamespace>
+    <AssemblyName>DeepSeekAgent.WinUI3</AssemblyName>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <UseWinUI>true</UseWinUI>
+    <!-- 非打包应用：不走 MSIX，用自包含的 Windows App SDK 运行时 -->
+    <WindowsPackageType>None</WindowsPackageType>
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- 浮动取 1.x 最新稳定版，首次 restore 成功后再钉死具体号 -->
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.*" />
+  </ItemGroup>
+</Project>

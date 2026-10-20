@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+      - name: Install deps
+        run: pip install -r engine/requirements.txt ruff
+      - name: Lint
+        run: ruff check engine/gad_engine
+      - name: Self-tests
+        # 这些测试全部离线（不碰网络、不启浏览器），可在 CI 跑。
+        # 名字里带 rpc / chrome 的会真连服务端，不在此列。
+        run: |
+          python -X utf8 engine/tests/test_pow.py
+          python -X utf8 engine/tests/test_pow_cache.py
+          python -X utf8 engine/tests/test_prompt.py
+          python -X utf8 engine/tests/test_sse_snapshot.py
+          python -X utf8 engine/tests/test_thinking.py
+          python -X utf8 engine/tests/test_suspended.py
+          python -X utf8 engine/tests/test_fence.py
+          python -X utf8 engine/tests/test_gates.py
+          python -X utf8 engine/tests/test_observability.py
+          python -X utf8 engine/tests/test_gemini_transport.py
+      - name: Shell self-tests
+        # `dotnet run` 的退出码就是被测程序 `Main` 的返回码（0 通过 / 1 失败），
+        # 所以这里不需要再解析输出文本 —— 那才是会在格式微调后静默变绿的做法。
+        #
+        # 这几个测试都不引用 WPF（被测类只依赖 System.Text.Json / System.Net.Http），
+        # 是普通 net8.0 控制台程序，因此不需要 `-p:UseWPF=true` 之类的开关。
+        #
+        # FishTtsTest 也**不联网** —— 它只测 Markdown 清洗、错误文案映射、
+        # 配置读写容错与 Ready 判定。真正打 api.fish.audio 的那条路径要凭据与额度，
+        # 不属于 CI 能判定的范围，靠手工验证记录覆盖（见项目卡片）。
+        run: |
+          dotnet run --project shell/selftest/StatusLogThrottleTest -c Release
+          dotnet run --project shell/selftest/LogRetentionTest -c Release
+          dotnet run --project shell/selftest/FishTtsTest -c Release

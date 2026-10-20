@@ -1,0 +1,53 @@
+# ---- 凭据（.token 是明文 Bearer token，等同账号密码）----
+# 这几条是**硬要求**：一旦进了库，历史里就永远擦不干净。
+.token
+.device-id
+*.token
+token.bak
+*credentials*.json
+cookies-*.json
+
+# ---- 抓包 / 会话数据（含 token、device-id、真实会话标题）----
+# `docs/evidence/` 是逆向过程的原始证据，凭证密度最高，不进库。
+docs/evidence/
+sess_tmp.json
+survival-state*.json
+survival-log*.jsonl
+probe-*.json
+
+# ---- 暂存 / 缓存 ----
+.tmp/
+.ruff_cache/
+.workbuddy-ai/
+*.bak
+*.bak-*
+
+# ---- 构建产物 ----
+bin/
+obj/
+*.user
+*.suo
+*.pdb
+*.dll
+*.exe
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+
+# ---- 运行期产物 ----
+*.log
+*.tmp
+sse-*.txt
+
+# ---- 编辑器 / 系统 ----
+.vs/
+.idea/
+.vscode/
+Thumbs.db
+desktop.ini
+.DS_Store

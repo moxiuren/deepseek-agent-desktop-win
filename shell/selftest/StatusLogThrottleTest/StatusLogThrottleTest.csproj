@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    StatusLogThrottle 的离线自测。
+    **不引用 WPF**：被测类只依赖 System.Text.Json，所以这里用普通 net8.0 即可，
+    CI 上不需要 windows-latest 也能跑（当前 CI 本来就是 windows，但少一层依赖更稳）。
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>DeepSeekAgent.SelfTest</RootNamespace>
+    <AssemblyName>StatusLogThrottleTest</AssemblyName>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Program.cs" />
+    <Compile Include="..\..\Shared\StatusLogThrottle.cs"
+             Link="Shared\StatusLogThrottle.cs" />
+  </ItemGroup>
+
+</Project>

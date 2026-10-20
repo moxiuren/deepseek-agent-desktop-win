@@ -1,0 +1,896 @@
+/* ── 主题变量 ────────────────────────────────────────────────────────────
+   39 个变量，正文里 100% 通过 var() 引用（零悬空、零未引用）。
+
+   颜色分两类：
+
+     · **语义色**（--bg / --ink / --brand …）—— 深色主题整套替换
+     · **几何与字体**（--r-* / --sh-* / --ui / --mono）—— 两个主题共用
+
+   下半段那几个 `--on-*` / `--code-*` / `--scroll-*` 是 2026-10-18 加的：
+   原来它们散落在正文里写死成 hex（`#fff` × 9、`#D8DEE8` × 3…），
+   共 50 处 36 种色。深色主题一进来，这些写死的值就是**不会变的那一批** ——
+   白底上的白字、浅灰滚动条配深灰背景，全是这么来的。
+   全部收进变量后，第二套主题只需要改这里的值。
+
+   `--code-bg` 在浅色主题下就是深色（代码块本来就该是深底），
+   深色主题里它反而要**变浅一点**才和周围分得开 —— 这是唯一一个反向的。
+   ──────────────────────────────────────────────────────────────────────── */
+:root{
+  /* 语义色 */
+  --bg:#EDF0F5; --surface:#FFFFFF; --surface-2:#F7F9FC; --surface-3:#F1F4F9;
+  --line:#E3E8F0; --line-2:#EEF1F6;
+  --ink:#1B2029; --ink-2:#4E5866; --ink-3:#616B79; --ink-4:#7E8897;
+  --brand:#2B6CF6; --brand-600:#1B58DC; --brand-soft:#EAF1FE;
+  --brand-soft-2:#DCE8FD; --brand-ink:#16407F;
+  /* 语义色：这三个是**图形色**（状态点、进度条、文字标记），
+     不是大面积填充。原值 #16A34A(2.89) / #D97706(2.79) / #0EA5A5(2.70)
+     压在 --bg 上都不到 3:1，调深到刚好过线。 */
+  --ok:#137A3B; --ok-soft:#E7F7ED; --ok-ink:#136236;
+  --warn:#B86504; --warn-soft:#FDF3E3; --warn-ink:#8A4A05;
+  --bad:#DC2626; --bad-soft:#FDECEC; --bad-ink:#8F1D1D;
+  --violet:#7C5CFC; --violet-soft:#EFEBFE;
+  --teal:#0A8080; --teal-soft:#E3F6F6;
+
+  /* 品牌色之上的前景（按钮文字、头像字）。浅色下品牌色够深，白字 4.59 过线。 */
+  --on-brand:#FFFFFF;
+  /* 开关圆点。**必须与 --on-brand 分开** —— 浅色下两者都是白，看不出区别；
+     深色下 --on-brand 要反成深色（品牌色被提亮了），但圆点压在深灰槽上
+     仍必须是白。合并成一个变量，必然有一边错。 */
+  --on-switch:#FFFFFF;
+  /* 品牌渐变起始色（标题栏 logo 方块） */
+  --brand-grad-1:#4B84FF;
+
+  /* 滚动条：轨道 / 滑块 / 悬停 */
+  --scroll-track:#C9D2DE; --scroll:#D8DEE8; --scroll-hover:#AEB6C2;
+  /* 开关底槽 */
+  --switch:#D5DBE5;
+
+  /* 代码块语法着色。
+     注意：`.code` 的**背景**是 `--surface-3`（浅灰），不是深色 ——
+     这里四个是**前景**色。所以深色主题下这四个必须整体提亮，
+     否则 #26303D 的正文压在 #262C35 的底上等于隐形。 */
+  --code-ink:#26303D; --code-dim:#7A8698; --code-kw:#1B58DC; --code-str:#0E7A5F;
+
+  /* 几何 */
+  --r-xs:6px; --r-sm:8px; --r-md:10px; --r-lg:12px; --r-xl:16px; --r-full:999px;
+  --sh-1:0 1px 2px rgba(16,24,40,.04);
+  --sh-2:0 1px 2px rgba(16,24,40,.04), 0 2px 6px rgba(16,24,40,.05);
+  --sh-3:0 4px 14px rgba(16,24,40,.07);
+
+  /* 字体 */
+  --ui:"Segoe UI","Microsoft YaHei UI","PingFang SC",system-ui,-apple-system,sans-serif;
+  --mono:"Cascadia Mono","Cascadia Code",Consolas,"JetBrains Mono",monospace;
+}
+
+/* ── 深色主题 ────────────────────────────────────────────────────────────
+   只覆盖颜色，不碰几何与字体。
+
+   配色不是「把浅色的值调暗」，而是**重新选的一组**。几个必须守住的点：
+
+     · `--surface` 比 `--bg` **亮**，与浅色主题的明暗关系相反。
+       深色界面里「浮起来」的层要更亮，否则面板会和背景糊在一起。
+     · `--brand` 提亮到 #5B8DEF：原来那个 #2B6CF6 压在深底上对比度不足，
+       蓝色发闷。提亮后既保持品牌识别，又能达到 AA。
+     · 语义色（ok/warn/bad）整体提亮、`-soft` 改成低饱和深底。
+       浅色主题里 `--bad-soft` 是淡红底配深红字；深色下要反过来 ——
+       深红底配亮红字，否则那块提示会像被挖空。
+     · `--code-bg` 比 `--surface` 再暗一档：代码块在深色界面里靠「更暗」
+       与周围区分（浅色主题里靠「更深」也是同理，方向一致）。
+   ──────────────────────────────────────────────────────────────────────── */
+:root[data-theme="dark"]{
+  --bg:#12151A; --surface:#1A1E25; --surface-2:#1F242C; --surface-3:#262C35;
+  --line:#2C333D; --line-2:#232932;
+  --ink:#E8ECF2; --ink-2:#A8B2C0; --ink-3:#7C8796; --ink-4:#6B7484;
+  --brand:#5B8DEF; --brand-600:#7AA4F5; --brand-soft:#1C2A42;
+  --brand-soft-2:#22334F; --brand-ink:#B9CFFA;
+  --ok:#3FBF6B; --ok-soft:#16281D; --ok-ink:#7BDFA0;
+  --warn:#E8A33D; --warn-soft:#2A2114; --warn-ink:#F5C77E;
+  --bad:#F26B6B; --bad-soft:#2C1A1A; --bad-ink:#FCA5A5;
+  --violet:#A48BFF; --violet-soft:#221D38;
+  --teal:#3ECFCF; --teal-soft:#12292A;
+
+  /* 深色下品牌色被**提亮**（#5B8DEF 压在 #12151A 上 5.66，够显眼），
+     代价是白字压它只剩 3.23 —— 不过 4.5。所以前景必须反成深色，
+     5.44 达标。这与 WPF 壳的 `OnAccent = #0E1A26` 是同一个解法，
+     两壳在深色下的按钮观感因此一致（浅底深字）。 */
+  --on-brand:#0E1A26;
+  --on-switch:#FFFFFF;
+  --brand-grad-1:#7AA4F5;
+
+  --scroll-track:#2C333D; --scroll:#3A424E; --scroll-hover:#4A5464;
+  --switch:#3A424E;
+
+  /* 深色下 `.code` 的底是 --surface-3 (#262C35)，所以前景要整体提亮。
+     原来浅色主题的 --code-ink (#26303D) 压在这个底上等于隐形 —— 这正是
+     「只改背景不改前景」最典型的翻车方式。 */
+  --code-ink:#D5DCE6; --code-dim:#8A94A3; --code-kw:#7AA4F5; --code-str:#5FD3A8;
+
+  /* 深色下阴影要更重才看得出层次 */
+  --sh-1:0 1px 2px rgba(0,0,0,.30);
+  --sh-2:0 1px 2px rgba(0,0,0,.30), 0 2px 6px rgba(0,0,0,.28);
+  --sh-3:0 4px 14px rgba(0,0,0,.42);
+}
+
+/* color-scheme 让浏览器把原生控件（滚动条、select、textarea 的默认底色、
+   自动填充的背景）也切到对应明暗。**这个必须跟着 data-theme 走**，
+   否则深色界面里会冒出一截浅色的原生滚动条 —— 比配色不协调更刺眼。
+   系统偏好不在这里判，由 app.js 解析后统一写 data-theme。 */
+:root[data-theme="dark"]{color-scheme:dark}
+:root[data-theme="light"]{color-scheme:light}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;padding:0}
+body{font-family:var(--ui); background:var(--bg); color:var(--ink); font-size:13px; line-height:1.6; -webkit-font-smoothing:antialiased; overflow:hidden;}
+button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
+svg{display:block}
+.titlebar{height:48px;display:flex;align-items:center;justify-content:space-between; padding:0 6px 0 14px;background:var(--surface); border-bottom:1px solid var(--line); -webkit-app-region:drag;}
+.tb-brand{display:flex;align-items:center;gap:9px}
+.tb-mark{width:24px;height:24px;border-radius:7px; background:linear-gradient(150deg,var(--brand-grad-1),var(--brand-600)); display:flex;align-items:center;justify-content:center;}
+.tb-name{font-size:13.5px;font-weight:600;letter-spacing:.1px}
+.tb-win{display:flex;gap:2px;-webkit-app-region:no-drag}
+.wbtn{width:38px;height:34px;border-radius:7px;display:flex;align-items:center; justify-content:center;color:var(--ink-2);transition:background .12s;}
+.wbtn:hover{background:var(--surface-3)}
+.wbtn.close:hover{background:var(--bad);color:var(--on-brand)}
+.shell{height:calc(100% - 48px); display:grid; grid-template-columns:220px minmax(0,1fr) 264px;}
+.sidebar{background:var(--surface); border-right:1px solid var(--line); display:flex;flex-direction:column; padding:12px 10px 10px; min-height:0;}
+.newchat{display:flex;align-items:center;justify-content:center;gap:7px; height:40px;border-radius:var(--r-md); background:var(--brand);color:var(--on-brand); font-size:13.5px;font-weight:600; box-shadow:0 1px 2px rgba(43,108,246,.28); transition:background .12s;}
+.newchat:hover{background:var(--brand-600)}
+.nav{margin-top:14px;display:flex;flex-direction:column;gap:1px}
+.nav-item{display:flex;align-items:center;gap:10px;height:36px;padding:0 10px; border-radius:var(--r-sm);color:var(--ink-2);font-size:13px; transition:background .12s,color .12s;}
+.nav-item:hover{background:var(--surface-3)}
+.nav-item.on{background:var(--brand-soft);color:var(--brand-600);font-weight:600}
+.nav-item.on svg{color:var(--brand-600)}
+.nav-item svg{color:var(--ink-3);flex:none}
+.list-head{display:flex;align-items:center;justify-content:space-between; margin:18px 2px 8px;}
+.list-head .lbl{font-size:11.5px;font-weight:600;color:var(--ink-3);letter-spacing:.3px}
+/* 列表来源标注。原来这里是「本地 / 网页版」分段控件，已拆掉（见 index.html 注释）*/
+.list-note{font-size:11px;color:var(--ink-4)}
+.chatlist{flex:1;overflow-y:auto;margin:0 -4px;padding:0 4px;min-height:0}
+.chatlist::-webkit-scrollbar{width:8px}
+.chatlist::-webkit-scrollbar-thumb{background:var(--scroll);border-radius:4px;border:2px solid var(--surface)}
+.chat{padding:8px 10px;border-radius:var(--r-md);margin-bottom:2px; cursor:pointer;transition:background .12s;}
+.chat:hover{background:var(--surface-3)}
+/* 键盘焦点环。
+   为什么用 :focus-visible 而不是 :focus：鼠标点击也会让 div 获得焦点，
+   用 :focus 的话每次点会话都会闪一圈蓝框 —— 用户会以为界面在抖。
+   :focus-visible 只在「浏览器判断这是键盘操作」时才亮。
+   outline-offset 用负值让环压在元素内侧：这一行贴着列表左边缘，
+   向外的环会被 .chatlist 的 overflow 裁掉。 */
+.chat:focus-visible{outline:2px solid var(--brand);outline-offset:-2px;background:var(--surface-3)}
+.chat.on:focus-visible{background:var(--brand-soft-2)}
+.chat.on{background:var(--brand-soft)}
+.chat .t{font-size:12.5px;font-weight:600;color:var(--ink); overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.chat.on .t{color:var(--brand-ink)}
+.chat .m{font-size:11px;color:var(--ink-3);margin-top:1px}
+/* position:relative —— 音色面板 .voice-pop 以此为定位基准向上弹。
+   不加的话它会去找最近的定位祖先，最后跑到 <body> 上，出现在窗口左上角。 */
+.side-foot{display:flex;align-items:center;gap:9px; padding:9px 6px 2px;margin-top:8px;border-top:1px solid var(--line-2);position:relative}
+.avatar{width:28px;height:28px;border-radius:var(--r-full);flex:none; background:var(--brand-soft);color:var(--brand-600); display:flex;align-items:center;justify-content:center; font-size:12px;font-weight:600;}
+.side-foot .nm{flex:1;font-size:12.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.side-foot .dots{color:var(--ink-4);padding:2px;border-radius:var(--r-xs)}
+.side-foot .dots:hover{background:var(--surface-3);color:var(--ink-2)}
+
+/* 主题按钮：两个图标常驻 DOM，用 display 二选一。
+   为什么不做成换 SVG —— 换 innerHTML 会让浏览器重新解析标记，按钮在
+   主题切换的瞬间会闪一下；两个都在、只切 display 是零重排的。
+
+   注意这里**不写 prefers-color-scheme**。系统偏好由 app.js 解析成具体的
+   data-theme 再落到 DOM 上（见 applyTheme）。原因：CSS 里若同时存在
+   「媒体查询给的深色」和「data-theme 给的深色」，就得把那 41 个变量
+   抄两遍，一旦哪天只改了其中一份，系统深色和手动深色会长得不一样。
+   让 JS 做唯一裁决者，CSS 只认 data-theme。 */
+#btnTheme .ic-sun{display:none}
+#btnTheme .ic-moon{display:block}
+:root[data-theme="dark"] #btnTheme .ic-sun{display:block}
+:root[data-theme="dark"] #btnTheme .ic-moon{display:none}
+.main{display:flex;flex-direction:column;min-width:0;min-height:0; background:var(--bg);}
+.main-head{height:52px;display:flex;align-items:center;gap:10px; padding:0 16px;background:var(--surface); border-bottom:1px solid var(--line);}
+.mh-icon{width:26px;height:26px;border-radius:8px;flex:none; background:var(--brand-soft);color:var(--brand-600); display:flex;align-items:center;justify-content:center;}
+/* 标题是**固定标签**（「对话流」/「监视器」），不参与 flex 收缩。
+   早先它和 .mh-sub 都是 `flex: 0 1 auto`，空间不足时压缩量按「基础尺寸 × 因子」
+   成比例分配 —— 标题只有 42px、副标题 309px，一压标题就先没（实测 1192px 窗口下
+   被压到 35px，渲染成「对…」）。长文本该省略的是副标题，不是固定标签。 */
+.mh-title{font-size:14px;font-weight:600;flex:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mh-sep{color:var(--ink-4);font-size:12px;flex:none}
+/* min-width:0 是 flex 子项能真正收缩的前提：默认 `min-width:auto` 等于「不小于内容宽」，
+   会让省略号永远不生效（内容直接把容器撑开）。 */
+.mh-sub{font-size:12.5px;color:var(--ink-2);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mh-right{margin-left:auto;display:flex;align-items:center;gap:8px;flex:none}
+.pill{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 11px; border-radius:var(--r-full);font-size:12px;font-weight:600;}
+.pill.ok{background:var(--ok-soft);color:var(--ok-ink)}
+.pill.warn{background:var(--warn-soft);color:var(--warn-ink)}
+.pill.bad{background:var(--bad-soft);color:var(--bad-ink)}
+.dot{width:6px;height:6px;border-radius:50%;flex:none}
+.pill.ok .dot{background:var(--ok)}
+.pill.warn .dot{background:var(--warn)}
+.pill.bad .dot{background:var(--bad)}
+.pill.run .dot{animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.ghost{height:28px;padding:0 11px;border-radius:var(--r-sm); font-size:12.5px;color:var(--ink-2);border:1px solid var(--line); background:var(--surface);transition:.12s;}
+.ghost:hover{background:var(--surface-2);border-color:var(--ink-4);color:var(--ink)}
+.stream{flex:1;overflow-y:auto;padding:18px 20px 8px;min-height:0}
+.stream::-webkit-scrollbar{width:9px}
+.stream::-webkit-scrollbar-thumb{background:var(--scroll);border-radius:5px;border:2px solid var(--bg)}
+.inner{max-width:760px;margin:0 auto}
+.spin{animation:spin 1s linear infinite;transform-origin:center}
+@keyframes spin{to{transform:rotate(360deg)}}
+.msg{display:flex;gap:11px;margin-bottom:16px;align-items:flex-start}
+.msg.me{flex-direction:row-reverse}
+.msg .av{width:26px;height:26px;border-radius:var(--r-full);flex:none;margin-top:2px; display:flex;align-items:center;justify-content:center; font-size:11.5px;font-weight:600;overflow:hidden;}
+.msg.bot .av{background:var(--brand);color:var(--on-brand)}
+.msg.me .av{background:var(--surface-3);color:var(--ink-2);border:1px solid var(--line)}
+.bubble{border-radius:var(--r-lg);padding:10px 14px; font-size:13.5px;line-height:1.72;min-width:0;}
+.msg.bot .bubble{flex:1;min-width:0; background:var(--surface);color:var(--ink); border-radius:var(--r-lg);box-shadow:var(--sh-1);}
+.msg.me .bubble{background:var(--surface);color:var(--ink); border:1px solid var(--line);border-top-right-radius:var(--r-xs); box-shadow:var(--sh-1);max-width:78%;}
+
+/* 气泡的纵向容器。.msg 是 flex 行（头像 + 内容），朗读条要落在气泡
+   正下方而不是被排到右侧，所以气泡外面必须再包一层纵向的 .body。
+   min-width:0 是 flex 子项的老规矩：不写的话长代码块会把气泡撑出屏幕。
+
+   **align-items 必须是 stretch 不是 flex-start**：`.bubble` 原来是
+   `.msg` 的直接 flex 子项、靠 `flex:1` 横向撑满；换成纵向容器后
+   同样的 `flex:1` 变成「纵向占满」，而 flex-start 会让气泡收缩到
+   内容宽度 —— 短回答会变成一小块贴在左边的色块，看起来像坏了。
+   朗读条自己靠 `align-self:flex-start` 保持靠左。 */
+.msg .body{flex:1;min-width:0;display:flex;flex-direction:column;align-items:stretch}
+.msg .body .bubble{flex:none}
+
+/* 朗读条：贴在气泡下方，默认淡到几乎看不见，悬停整条消息才浮现。
+   常亮的话每条回答底下都挂一个按钮，长对话会变成一列工具栏。 */
+.tts-bar{display:flex;gap:6px;margin-top:4px;align-self:flex-start;opacity:0;transition:opacity .14s}
+.msg:hover .tts-bar,.tts-bar:focus-within{opacity:1}
+/* 正在播放 / 正在连接时**必须常亮** —— 否则鼠标一移开，用户就找不到
+   「怎么停」了，而声音还在响。 */
+.tts-bar:has(.tts-btn.on){opacity:1}
+
+.tts-btn{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 9px;
+  border-radius:var(--r-full);border:1px solid transparent;background:transparent;
+  color:var(--ink-3);font:inherit;font-size:11.5px;cursor:pointer;transition:.12s}
+.tts-btn:hover{background:var(--surface-2);border-color:var(--line);color:var(--ink)}
+.tts-btn.on{background:var(--brand-soft);border-color:var(--brand-soft-2);color:var(--brand-ink)}
+.tts-btn.on:hover{background:var(--brand-soft-2)}
+/* 等票期间给个呼吸感 —— 按钮已经显示「停止」，但声音还没起来，
+   不给任何反馈的话用户会以为点了没反应。 */
+.tts-btn.busy svg{animation:pulse 1s ease-in-out infinite}
+
+/* 右下角轻提示。与对话流里的红行分开：那是「这轮任务出错了」，
+   这是「你刚点的那个小按钮没成功」。 */
+.toast{position:fixed;right:20px;bottom:88px;max-width:min(420px,60vw);
+  padding:9px 14px;border-radius:var(--r-md);background:var(--ink);color:var(--surface);
+  font-size:12.5px;line-height:1.6;box-shadow:var(--sh-3);
+  opacity:0;transform:translateY(6px);pointer-events:none;transition:.18s;z-index:60}
+.toast.show{opacity:1;transform:none}
+.av img{width:100%;height:100%;object-fit:cover;display:block}
+.bubble p{margin:0 0 8px}
+.bubble p:last-child{margin-bottom:0}
+.bubble ul{margin:6px 0;padding-left:18px}
+.bubble li{margin:3px 0}
+.code{margin:9px 0;border-radius:var(--r-sm);background:var(--surface-3); border:1px solid var(--line);border-left:3px solid var(--brand); overflow:hidden;}
+.code-head{display:flex;align-items:center;justify-content:space-between; padding:6px 11px;border-bottom:1px solid var(--line-2);}
+.code-head .lg{font-size:11px;color:var(--ink-3);font-family:var(--mono)}
+.code-head .cp{font-size:11px;color:var(--ink-3);padding:2px 6px;border-radius:var(--r-xs)}
+.code-head .cp:hover{background:var(--surface);color:var(--brand-600)}
+.code pre{margin:0;padding:9px 11px;font-family:var(--mono);font-size:12px; line-height:1.65;color:var(--code-ink);overflow-x:auto;}
+.code pre .c{color:var(--code-dim)}
+.code pre .k{color:var(--code-kw)}
+.code pre .s{color:var(--code-str)}
+.icode{font-family:var(--mono);font-size:12.2px; background:rgba(27,88,220,.08);color:var(--brand-ink); padding:1px 5px;border-radius:var(--r-xs);}
+.msg.bot .icode{background:rgba(22,64,127,.10)}
+.tool{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md); margin-bottom:16px;box-shadow:var(--sh-1);overflow:hidden;}
+.tool-head{display:flex;align-items:center;gap:9px;padding:9px 12px;cursor:pointer}
+.tool-head .ts{width:16px;height:16px;flex:none}
+.tool-badge{font-family:var(--mono);font-size:11px;font-weight:600; padding:2px 7px;border-radius:var(--r-xs); background:var(--surface-3);color:var(--ink-2);border:1px solid var(--line);}
+.tool-cmd{font-family:var(--mono);font-size:12px;color:var(--ink-2); overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;}
+.tool-time{font-size:11.5px;color:var(--ink-3);flex:none;font-family:var(--mono)}
+.tool-out{border-top:1px solid var(--line-2);background:var(--surface-2); padding:9px 12px;font-family:var(--mono);font-size:11.5px; color:var(--ink-2);line-height:1.6;max-height:132px;overflow:auto;}
+.tool-out pre{margin:0;font:inherit;white-space:pre-wrap;word-break:break-word}
+.tool-caret{color:var(--ink-4);flex:none;transition:transform .18s;transform:rotate(180deg)}
+.tool.collapsed .tool-caret{transform:rotate(0)}
+.tool.collapsed .tool-out{display:none}
+.tool.running{border-color:var(--brand-soft-2);box-shadow:0 0 0 1px var(--brand-soft)}
+.tool-time.live{color:var(--brand);font-weight:600}
+.out-live{display:inline-flex;align-items:center;gap:5px; font-family:var(--ui);font-size:10.5px;font-weight:600;color:var(--brand-600); background:var(--brand-soft);padding:1px 8px;border-radius:var(--r-full); margin-bottom:7px;}
+.out-live i{width:5px;height:5px;border-radius:50%;background:var(--brand); animation:pulse 1.2s ease-in-out infinite;}
+.cursor{display:inline-block;width:6px;height:12px;background:var(--brand); vertical-align:-2px;margin-left:1px;animation:blink 1s step-end infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.sys{display:flex;align-items:flex-start;gap:9px;padding:9px 12px; border-radius:var(--r-md);margin-bottom:16px;font-size:12.5px; background:var(--warn-soft);color:var(--warn-ink);}
+.sys.bad{background:var(--bad-soft);color:var(--bad-ink)}
+.sys.ok{background:var(--ok-soft);color:var(--ok-ink)}
+.turn{display:flex;align-items:center;gap:10px;margin:20px 0 14px;}
+.turn .ln{flex:1;height:1px;background:var(--line)}
+.turn .tx{font-size:11px;color:var(--ink-3);font-weight:600;letter-spacing:.3px}
+.composer{padding:0 20px 16px}
+.composer .inner{max-width:760px}
+.todo{background:var(--surface);border:1px solid var(--line); border-radius:var(--r-lg);box-shadow:var(--sh-2); margin-bottom:10px;overflow:hidden;}
+.todo-head{display:flex;align-items:center;gap:9px;padding:10px 13px;cursor:pointer}
+.td-ic{width:16px;height:16px;flex:none}
+.td-cur{flex:1;min-width:0;font-size:12.5px;font-weight:600; overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.td-step{font-size:11.5px;color:var(--ink-3);font-family:var(--mono);flex:none}
+.td-caret{color:var(--ink-4);flex:none;transition:transform .18s;transform:rotate(180deg)}
+.todo.collapsed .td-caret{transform:rotate(0)}
+.todo.collapsed .todo-list{display:none}
+.todo-bar{height:2px;background:var(--line-2)}
+.todo-bar i{display:block;height:100%;background:var(--brand); border-radius:0 2px 2px 0;transition:width .3s;}
+.todo-list{padding:6px 13px 11px;border-top:1px solid var(--line-2)}
+.td-item{display:flex;align-items:center;gap:9px;padding:5px 0;font-size:12.5px}
+.td-item .tdi{width:15px;height:15px;flex:none}
+.td-item .tdt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.td-item .tds{font-size:11.5px;font-weight:600;flex:none}
+.td-item.done .tdt{color:var(--ink-2)}
+.td-item.done .tds{color:var(--ok)}
+.td-item.doing .tdt{color:var(--brand-ink);font-weight:600}
+.td-item.doing .tds{color:var(--brand)}
+.td-item.pending .tdt{color:var(--ink-3)}
+.td-item.pending .tds{color:var(--ink-4)}
+.box{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-xl); box-shadow:var(--sh-2);transition:border-color .14s,box-shadow .14s;}
+.box:focus-within{border-color:var(--brand);box-shadow:0 0 0 3px rgba(43,108,246,.10),var(--sh-2)}
+.attach{display:flex;align-items:center;gap:7px;padding:8px 12px 0;flex-wrap:wrap;}
+.attach .ap{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 8px; border-radius:var(--r-xs);background:var(--surface-3);border:1px solid var(--line); font-size:11.5px;color:var(--ink-2);}
+.attach .ap .x{color:var(--ink-4)}
+.attach .ap .x:hover{color:var(--bad)}
+/* 拖文件进窗口时的落点提示。
+   整个输入框描边高亮 + 一条「松手即可添加」的浮层 —— 只在拖拽进行中出现。
+   为什么挂在 body 上而不是 .box 上：拖拽事件是 window 级的（文件可能落在
+   页面任何位置），用 body 上的类做全局开关，比给每个容器都加监听省事。
+   注意这里**不做全屏遮罩** —— 遮住内容会让用户看不见自己在往哪儿放。 */
+body.dropping .box{border-color:var(--brand);box-shadow:0 0 0 3px rgba(43,108,246,.14),var(--sh-2);}
+body.dropping .box::after{
+  content:'松开即可添加为附件';
+  position:absolute;right:12px;bottom:10px;
+  font-size:11.5px;color:var(--brand-600);background:var(--brand-soft);
+  padding:2px 8px;border-radius:var(--r-full);pointer-events:none;
+}
+textarea{width:100%;border:0;outline:0;resize:none;background:transparent; font:inherit;font-size:13.5px;color:var(--ink);padding:12px 14px 4px; min-height:56px;max-height:150px;line-height:1.6;}
+textarea::placeholder{color:var(--ink-4)}
+.crow{display:flex;align-items:center;gap:7px;padding:4px 10px 10px}
+.chip{display:inline-flex;align-items:center;gap:5px;height:28px;padding:0 11px; border-radius:var(--r-full);border:1px solid var(--line); background:var(--surface);font-size:12px;color:var(--ink-2);transition:.12s;}
+.chip:hover{border-color:var(--ink-4);background:var(--surface-2)}
+.chip.on{background:var(--brand-soft);border-color:var(--brand-soft-2);color:var(--brand-600);font-weight:600}
+.chip .cv{font-weight:600;color:var(--ink)}
+.chip.on .cv{color:var(--brand-600)}
+.crow .right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.icobtn{width:30px;height:30px;border-radius:var(--r-sm);display:flex; align-items:center;justify-content:center;color:var(--ink-3);transition:.12s;}
+.icobtn:hover{background:var(--surface-3);color:var(--ink-2)}
+.send{width:34px;height:34px;border-radius:var(--r-full);background:var(--brand); color:var(--on-brand);display:flex;align-items:center;justify-content:center; box-shadow:0 2px 6px rgba(43,108,246,.32);transition:.12s;}
+.send:hover{background:var(--brand-600)}
+.send.stop{background:var(--bad);box-shadow:0 2px 6px rgba(220,38,38,.3)}
+.hint{display:flex;align-items:center;gap:8px;margin-top:8px;padding:0 4px; font-size:11.5px;color:var(--ink-4);}
+.hint kbd{font-family:var(--ui);font-size:11px;background:var(--surface); border:1px solid var(--line);border-radius:4px;padding:1px 5px;color:var(--ink-3);}
+.hint .more{margin-left:auto;color:var(--ink-3);text-decoration:underline;text-underline-offset:2px}
+.rightbar{background:var(--surface);border-left:1px solid var(--line); display:flex;flex-direction:column;min-height:0;}
+.rb-tabs{display:flex;align-items:center;gap:2px;padding:8px 10px 0; border-bottom:1px solid var(--line);}
+.rb-tab{padding:8px 10px 10px;font-size:12.5px;color:var(--ink-2); border-bottom:2px solid transparent;margin-bottom:-1px;transition:.12s;}
+.rb-tab:hover{color:var(--ink)}
+.rb-tab.on{color:var(--brand-600);font-weight:600;border-bottom-color:var(--brand)}
+.rb-tabs .gear{margin-left:auto;margin-bottom:8px;color:var(--ink-3)}
+.rb-tabs .gear:hover{color:var(--ink-2)}
+.rb-body{flex:1;overflow-y:auto;padding:14px 12px;min-height:0}
+.rb-body::-webkit-scrollbar{width:8px}
+.rb-body::-webkit-scrollbar-thumb{background:var(--scroll);border-radius:4px;border:2px solid var(--surface)}
+.rb-group{font-size:11.5px;font-weight:600;color:var(--ink-3);margin:0 2px 9px;letter-spacing:.3px}
+.rb-group + .rb-group{margin-top:20px}
+.rb-panel[hidden]{display:none}
+.conf-card{border:1px solid var(--line);border-radius:var(--r-md); padding:12px;background:var(--surface);margin-bottom:7px;}
+/* 配置页里的「标签 + 控件」竖排。select 要撑满宽度 —— 档位名较长
+   （`DeepSeek 网页版` / `Gemini 网页版`），chip 的 inline-flex 会把它压窄。 */
+.conf-field{display:flex;flex-direction:column;gap:6px}
+.conf-field > label{font-size:12.5px;color:var(--ink-2)}
+.conf-field select{width:100%;height:32px;padding:0 9px;border-radius:var(--r-sm);
+  border:1px solid var(--line);background:var(--surface-2);color:var(--ink);
+  font-size:12.5px;font-family:inherit;cursor:pointer;}
+.conf-field select:hover:not(:disabled){border-color:var(--ink-4)}
+.conf-field select:disabled{opacity:.55;cursor:default}
+/* 不可用档位（依赖没装）在原生 select 里无法单独置灰某一项 ——
+   浏览器不支持 option:disabled 的统一表现。所以用文案兜底：
+   选中它时下面那行 note 会说明原因。 */
+.conf-note{font-size:11.5px;color:var(--ink-3);margin-top:9px;line-height:1.55}
+.conf-note.warn{color:var(--warn)}
+.ava-row{display:flex;align-items:center;gap:11px}
+.ava-prev{width:38px;height:38px;border-radius:var(--r-full);flex:none;overflow:hidden; background:var(--brand);color:var(--on-brand);font-size:15px;font-weight:600; display:flex;align-items:center;justify-content:center;}
+.ava-prev svg{width:20px;height:20px}
+.ava-prev svg.fill{width:100%;height:100%}
+.ava-meta{flex:1;min-width:0}
+.ava-t{display:block;font-size:12.5px;font-weight:600;line-height:1.45}
+.ava-s{display:block;font-size:11.5px;color:var(--ink-3);margin-top:1px;line-height:1.45}
+.ava-picks{display:flex;gap:8px;margin-top:12px}
+.pick{width:32px;height:32px;border-radius:var(--r-full);flex:none;padding:0; display:flex;align-items:center;justify-content:center;overflow:hidden; background:var(--brand);color:var(--on-brand);font-size:12.5px;font-weight:600; transition:box-shadow .12s,transform .12s;}
+.pick svg{width:17px;height:17px;display:block}
+.pick svg.fill{width:100%;height:100%}
+.msg .av svg.fill{width:100%;height:100%;display:block}
+.pick[data-avatar="initial"]{background:var(--brand-ink)}
+.pick.upload{background:var(--surface-3);color:var(--ink-3); box-shadow:inset 0 0 0 1px var(--line);}
+.pick.upload:hover{color:var(--brand-600);box-shadow:inset 0 0 0 1px var(--brand)}
+.pick:hover{transform:translateY(-1px)}
+.pick.on{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--brand)}
+.ava-hint{font-size:11.5px;color:var(--ink-3);margin-top:10px;line-height:1.55}
+.switch-row{display:flex;align-items:center;justify-content:space-between; font-size:12.5px;padding:7px 0;}
+.switch-row + .switch-row{border-top:1px solid var(--line-2)}
+/* 关闭态靠**边框**给出可见边界，不靠槽底与背景的明度差。
+   实测槽底 #D5DBE5 压在白卡上只有 1.39:1 —— 把槽压深到 3:1 需要 #8E9CAE
+   那种深灰，开关会重得像禁用态。描边是更经济的解法：--ink-4 压在
+   surface 上是 3.23（浅色）/ 3.55（深色），过 WCAG 1.4.11 的 3:1。
+   开启态不需要描边 —— 品牌色本身就够显眼。 */
+.sw{width:34px;height:20px;border-radius:var(--r-full);background:var(--switch); border:1px solid var(--ink-4);box-sizing:border-box; position:relative;flex:none;transition:background .14s,border-color .14s;}
+/* 圆点偏移要算上 1px 边框：box-sizing:border-box 后内区是 32x18，
+   16px 圆点居中要留 (18-16)/2 = 1px，再加边框 1px → 2px。与原来同值。 */
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px; border-radius:50%;background:var(--on-switch);box-shadow:var(--sh-1);transition:transform .14s;}
+.sw.on{background:var(--brand);border-color:var(--brand)}
+.sw.on::after{transform:translateX(14px)}
+.size-row{display:flex;align-items:center;gap:10px}
+.size-row input[type=range]{flex:1;min-width:0;accent-color:var(--brand)}
+.sz{font-size:11.5px;color:var(--ink-3);flex:none}
+.sz.big{font-size:15px}
+.pct{font-size:11.5px;font-family:var(--mono);color:var(--ink-2);flex:none;min-width:38px;text-align:right}
+.titem{display:flex;align-items:center;gap:11px;padding:9px 10px;border-radius:var(--r-md); border:1px solid var(--line);background:var(--surface);margin-bottom:7px; transition:.12s;cursor:pointer;}
+.titem:hover{border-color:var(--brand-soft-2);background:var(--surface-2)}
+.titem .ti{width:30px;height:30px;border-radius:var(--r-sm);flex:none; display:flex;align-items:center;justify-content:center;}
+.ti.blue{background:var(--brand-soft);color:var(--brand-600)}
+.ti.violet{background:var(--violet-soft);color:var(--violet)}
+.ti.teal{background:var(--teal-soft);color:var(--teal)}
+.ti.ink{background:var(--surface-3);color:var(--ink-2)}
+.titem .tt{flex:1;min-width:0;display:block}
+.titem .tt .a{display:block;font-size:12.5px;font-weight:600;line-height:1.45; overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.titem .tt .b{display:block;font-size:11.5px;color:var(--ink-3);margin-top:1px;line-height:1.45; overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.titem .arw{color:var(--ink-4);flex:none}
+.pcard{border:1px solid var(--line);border-radius:var(--r-md);padding:11px 12px; background:var(--surface);box-shadow:var(--sh-1);}
+.pcard .row{display:flex;align-items:center;gap:10px;min-width:0}
+.pcard .nm{display:block;font-size:12.5px;font-weight:600;line-height:1.45; overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.pcard .pt{display:block;font-size:11.5px;color:var(--ink-3);font-family:var(--mono); margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.badge{display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 9px; border-radius:var(--r-full);font-size:11px;font-weight:600;flex:none;}
+.badge.ok{background:var(--ok-soft);color:var(--ok-ink)}
+.stat{border:1px solid var(--line);border-radius:var(--r-md);padding:11px 12px;background:var(--surface)}
+.stat .row{display:flex;align-items:center;gap:7px}
+.stat .sl{font-size:12.5px;font-weight:600}
+.stat .sd{font-size:11.5px;color:var(--ink-3);margin-top:4px}
+.meter{height:5px;border-radius:3px;background:var(--surface-3);margin-top:9px;overflow:hidden}
+.meter i{display:block;height:100%;border-radius:3px;background:var(--ok)}
+.kv{display:flex;justify-content:space-between;font-size:11.5px;color:var(--ink-2);padding:3px 0}
+.kv b{font-weight:600;color:var(--ink);font-family:var(--mono)}
+.help{position:fixed;right:16px;bottom:16px;width:326px;max-height:70vh;overflow:auto; background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg); box-shadow:var(--sh-3);padding:14px;font-size:12.5px;line-height:1.65;display:none;z-index:99;}
+.help.on{display:block}
+.help h4{margin:0 0 8px;font-size:13px}
+.help ul{margin:0;padding-left:17px;color:var(--ink-2)}
+.help li{margin:4px 0}
+.help .hintbar{position:fixed;right:16px;bottom:16px;}
+.helpbtn{width:34px;height:34px;border-radius:var(--r-full);background:var(--surface); border:1px solid var(--line);box-shadow:var(--sh-2);color:var(--ink-2); display:flex;align-items:center;justify-content:center;}
+.helpbtn:hover{color:var(--brand-600);border-color:var(--brand-soft-2)}
+/* ============================================================================
+   应用层补充（设计稿里没有的部分）
+   ----------------------------------------------------------------------------
+   本文件由 tools/build_css.py 生成：设计稿 <style>（已删断点）+ 下面这段。
+   生成之后 **app.css 就是唯一真源** —— 改样式直接改这里，不要再回头改设计稿。
+   ============================================================================ */
+
+/* --- 1) 纵向三段式：顶栏 / 三栏主体 / 输入区 --------------------------------
+   设计稿的 .shell 是 height:calc(100% - 48px)，只减了顶栏 48px；但 body 里
+   除 .shell 还有 .composer，于是输入区被挤出视口、被 body{overflow:hidden}
+   吞掉（截图里底部整块空白就是这个原因）。改成 flex 列。 */
+body{display:flex;flex-direction:column;height:100vh}
+.titlebar{flex:none}
+/* ★ 必须显式定义**行**。只写 `grid-template-columns` 时行高是 `auto`，
+   而中栏 `.main` 里有个长对话流 —— 行高被内容撑开，`.stream` 的
+   `flex:1;overflow-y:auto` 就失去了约束（父级高度不确定），
+   于是整行无限长，把 `.composer`（输入框）推到视口外。
+   症状：窗口里看得到消息、看不到输入框，且怎么滚都没用。
+   实测（2026-10-17 23:3x）：长回复出现后复现。 */
+.shell{flex:1 1 auto;min-height:0;height:auto;grid-template-rows:minmax(0,1fr)}
+.composer{flex:none}
+
+/* --- 2) 桌面窗口不该有浏览器断点 -------------------------------------------
+   断点已在生成时删除。这里再给一个下限：窄到放不下就让外层横向滚动，
+   也不让任何一栏凭空消失。窗口自身的 MinWidth 是第一道闸。 */
+body{overflow-x:auto}
+.shell{min-width:820px}
+
+/* --- 3) 输入区：和对话列共用一条中线 ---------------------------------------
+   设计稿 .composer .inner 只给了 max-width，漏了 margin:0 auto
+   （.inner 的通用规则里有），于是输入框和正文不在一条中线上。 */
+.composer .inner{max-width:760px;margin:0 auto}
+.box textarea{resize:none;overflow-y:auto}
+
+/* --- 4) 屏外块跳过渲染 ------------------------------------------------------
+   实测 600 块一次灌入：强制同步布局 302.9ms → 19.5ms（15.5 倍）。
+   这就是这一条存在的唯一理由 —— 滚动本身没有变快（开/关都是 16.7ms 中位帧间隔），
+   省的是**批量插入时对屏外块的排版**。
+
+   代价是 `contain-intrinsic-size` 决定了屏外块占位高度。原先写死 110px，
+   对长对话是灾难性的：740 块真实总高 626406px，而 110px 估算给出 81400px
+   （低估 87%）。后果不是"滚动条轻微跳动"，而是三件事同时发生：
+
+     · 初始滚动条长度完全失真（用户以为还剩一屏，其实还有十倍）
+     · 滚动经过时逐块换成真实高度，总高单向膨胀 +33% 且永不回退
+     · 视口内锚点漂移 1960px —— 用户眼睛看得见的跳动
+
+   修法不是删掉特性，而是把估算喂准。app.js 的 `intrinsicHeight()` 按 kind
+   与字符数算出每块的占位高度（对 107 万字样本拟合，总高偏差 +0.0%），
+   通过 inline style 覆盖这里的 110px 兜底值。
+
+   为什么保留下面的 110px：inline style 只在 `onItem` 里设得上。从
+   `hist` 恢复的历史走的是同一路径（`onHistory` → `onItem`），所以正常
+   情况都能覆盖；兜底值只是给"未来新增了渲染路径但忘了设"留的安全网。
+   保留 `auto` 关键字：真实尺寸量过之后仍然回写，作为最后一道校正。 */
+.msg,.tool,.turn,.sys{content-visibility:auto;contain-intrinsic-size:auto 110px}
+
+/* --- 5) 细滚动条（WebView2 是 Chromium，::-webkit-scrollbar 直接可用） ---- */
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{
+  background:var(--scroll-track);border-radius:5px;
+  border:2px solid transparent;background-clip:content-box;
+}
+::-webkit-scrollbar-thumb:hover{background:var(--scroll-hover);background-clip:content-box}
+
+/* --- 6) 设计稿没定义的状态色 ------------------------------------------------ */
+[hidden]{display:none !important}
+.pill.idle{background:var(--surface-3);color:var(--ink-2)}
+.pill.idle .dot{background:var(--ink-4)}
+.badge.bad{background:var(--bad-soft);color:var(--bad-ink)}
+.badge.run{background:var(--brand-soft);color:var(--brand-ink)}
+
+/* --- 7) 思考块（设计稿没画这一类）------------------------------------------
+   左侧竖线 + 淡字，让「这是旁注、不是回答」在视觉上就成立。 */
+.thought{margin:4px 0 10px;padding-left:11px;border-left:2px solid var(--line)}
+.thought-head{
+  display:flex;align-items:center;gap:6px;
+  font-size:11.5px;color:var(--ink-3);cursor:pointer;user-select:none;
+}
+.thought-head:hover{color:var(--ink-2)}
+.thought-head .ttext{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.thought-head .tcaret{
+  margin-left:auto;color:var(--ink-4);flex:none;
+  transition:transform .18s;transform:rotate(180deg);
+}
+.thought.collapsed .thought-head .tcaret{transform:rotate(0)}
+.thought-body{
+  margin-top:6px;font-size:12px;color:var(--ink-2);line-height:1.72;
+  white-space:pre-wrap;word-break:break-word;max-height:340px;overflow:auto;
+}
+.thought.collapsed .thought-body{display:none}
+
+/* --- 8) 监视器日志行（设计稿没有监视器视图）------------------------------- */
+.mon-bar{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:7px 16px;border-bottom:1px solid var(--line);
+  background:var(--surface-2);font-size:12px;color:var(--ink-3);
+}
+.mon-toggle{display:inline-flex;align-items:center;gap:6px;cursor:pointer;user-select:none;color:var(--ink-2)}
+.mon-toggle input{accent-color:var(--brand);cursor:pointer}
+.mon-hint{color:var(--ink-4)}
+/* 「只看重要」打开时，Faint 行保留在 DOM 里但不占位 —— 取消勾选立刻回来，
+   不需要重新拉一遍历史。 */
+.mon-line.mon-dim{display:none}
+.mon-line{
+  display:flex;gap:8px;align-items:baseline;
+  font-family:var(--mono);font-size:11.5px;
+  padding:3px 0;border-bottom:1px solid var(--line-2);
+}
+.mon-line .at{color:var(--ink-4);flex:none}
+.mon-line .lv{flex:none;color:var(--ink-3);text-transform:lowercase}
+.mon-line .lv.warn{color:var(--warn-ink)}
+.mon-line .lv.error{color:var(--bad-ink)}
+.mon-line .tx{color:var(--ink-2);white-space:pre-wrap;word-break:break-word}
+
+/* --- 9) 空状态 -------------------------------------------------------------- */
+.empty-state{padding:56px 16px;text-align:center;color:var(--ink-3);font-size:12.5px}
+
+/* --- 10) 任务列表失败态（设计稿只有 done / doing / pending）--------------- */
+.td-item.fail .tdt,.td-item.fail .tds{color:var(--bad-ink)}
+
+/* --- 11) 自绘标题栏：拖拽区不选中文字 ------------------------------------- */
+.titlebar{user-select:none;-webkit-user-select:none;cursor:default}
+
+/* --- 12) 状态行（.sys）------------------------------------------------------
+   设计稿只画了三种底色：默认（琥珀 = 警告）、.ok（绿）、.bad（红），
+   结构是「图标 + span<b>标题</b> · 正文」。但「信息 / 摘要 / 思考中」这类
+   中性事件不该用警告色，补一个 .idle。图标与标题的排版也在这里补齐，
+   免得每条状态行都要写行内样式。 */
+.sys.idle{background:var(--surface-3);color:var(--ink-2)}
+.sys>svg{flex:none;margin-top:2px}
+.sys b{font-weight:600}
+
+/* --- 13) 从右栏跳到对话流时的高亮 ------------------------------------------
+   右栏点一条工具，中间栏滚到对应那张卡并闪一下。两个挂点：右栏条目自己
+   （.titem）和对话流里的工具卡（.tool）。 */
+.titem.flash,.tool.flash{box-shadow:0 0 0 2px var(--brand-soft-2);border-color:var(--brand)}
+
+/* --- 14) 左栏列表的空态 / 加载态 --------------------------------------------
+   .empty-state 是给主区用的（padding 56px），塞进 220px 宽的侧栏里会顶出一大块
+   空白，看着像坏了。侧栏用自己的一份。 */
+.side-empty{padding:18px 8px;text-align:center;color:var(--ink-3);font-size:11.5px;line-height:1.6}
+
+/* --- 15) 身份 / 凭据面板（设计稿没有这一块）--------------------------------
+   对应 WPF 壳的 IdentityDialog。用遮罩而不是右栏第四个页签，是因为它有两条
+   入口，其中一条必须能真正「打断」用户：凭据不可用时宿主会主动弹它
+   （AgentHost.IdentityNeedsLogin）—— 悄悄换一个页签用户根本不会注意到。
+
+   卡片限高 + 内部滚动：窗口最小 1280x760，而这块内容比它高。 */
+.mask{
+  position:fixed;inset:0;z-index:120;
+  background:rgba(16,24,40,.36);
+  display:flex;align-items:center;justify-content:center;
+  padding:20px;
+}
+.idcard{
+  width:620px;max-width:100%;max-height:100%;
+  display:flex;flex-direction:column;min-height:0;
+  background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--r-lg);box-shadow:var(--sh-3);overflow:hidden;
+}
+.idhead{
+  flex:none;display:flex;align-items:center;justify-content:space-between;
+  padding:11px 12px 11px 16px;border-bottom:1px solid var(--line);
+}
+.idt{font-size:13.5px;font-weight:600}
+.idclose{
+  width:28px;height:28px;border-radius:var(--r-sm);flex:none;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--ink-3);transition:.12s;
+}
+.idclose:hover{background:var(--surface-3);color:var(--ink)}
+.idbody{flex:1;min-height:0;overflow-y:auto;padding:14px 16px 16px}
+.idfoot{
+  flex:none;display:flex;flex-direction:column;gap:10px;
+  padding:10px 16px;border-top:1px solid var(--line);background:var(--surface-2);
+}
+.idfoot-row{display:flex;align-items:center;gap:10px}
+.idfoot-acts{display:flex;align-items:center;gap:8px;flex:none}
+/* 忙碌文案占中间的空档；长了就省略 —— 它不该把「关闭」挤出去 */
+.idbusy{
+  flex:1;min-width:0;font-size:11.5px;color:var(--ink-3);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+/* 回执挪到底栏后，上外边距归零（原来靠 margin-top:14px 与正文拉开距离），
+   并加高度上限 —— 引擎的失败文案可能有好几行，不能让它把卡片顶穿。 */
+.idfoot .idmsg{margin:0;max-height:120px;overflow-y:auto}
+.idfoot .idmsg[hidden]{display:none}
+
+/* 当前身份卡 */
+.idnow{
+  display:flex;align-items:flex-start;gap:12px;
+  border:1px solid var(--line);border-radius:var(--r-sm);
+  padding:11px 12px;background:var(--surface);
+}
+.idnow-l{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.idlbl{font-size:11px;font-weight:600;color:var(--ink-3);letter-spacing:.3px}
+.idmode{font-size:15px;font-weight:600;line-height:1.4}
+.idhint{font-size:11.5px;color:var(--ink-3);line-height:1.55;word-break:break-all}
+.idchip{
+  flex:none;display:inline-flex;align-items:center;height:24px;padding:0 11px;
+  border-radius:var(--r-full);font-size:11px;font-weight:600;
+}
+.idchip.ok{background:var(--brand-soft);color:var(--brand)}
+.idchip.warn{background:var(--warn-soft);color:var(--warn-ink)}
+.idchip.bad{background:var(--bad-soft);color:var(--bad-ink)}
+.idchip.idle{background:var(--surface-3);color:var(--ink-2)}
+
+.idnote{
+  margin-top:12px;padding:9px 11px;background:var(--surface-2);
+  border:1px solid var(--line-2);border-radius:var(--r-xs);
+  font-size:11.5px;color:var(--ink-2);line-height:1.6;
+}
+
+.idsec{
+  font-size:11.5px;font-weight:600;color:var(--ink-3);
+  letter-spacing:.3px;margin:16px 0 8px;
+}
+.idbox{
+  border:1px solid var(--line);border-radius:var(--r-sm);
+  padding:12px;background:var(--surface);
+}
+.idhint2{font-size:11.5px;color:var(--ink-3);line-height:1.6}
+
+.idrow{display:flex;align-items:center;gap:8px}
+.idrow.between{justify-content:space-between;margin-top:10px}
+.idrow .idinput{flex:1;min-width:0}
+.idrow .idbtn{flex:none}
+
+.idinput{
+  height:32px;border:1px solid var(--line);border-radius:var(--r-sm);
+  background:var(--surface);padding:0 10px;font:inherit;font-size:13px;
+  color:var(--ink);outline:0;transition:border-color .12s,box-shadow .12s;
+}
+.idinput:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(43,108,246,.10)}
+.idinput::placeholder{color:var(--ink-4)}
+
+.idta{
+  display:block;width:100%;min-height:66px;border:1px solid var(--line);
+  border-radius:var(--r-sm);background:var(--surface);padding:8px 10px;
+  font-family:var(--mono);font-size:11.5px;color:var(--ink);
+  line-height:1.6;outline:0;resize:vertical;word-break:break-all;
+}
+.idta:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(43,108,246,.10)}
+
+.idbtn{
+  height:30px;padding:0 12px;border-radius:var(--r-sm);
+  border:1px solid var(--line);background:var(--surface);
+  font-size:12.5px;color:var(--ink-2);transition:.12s;
+}
+.idbtn:hover:not(:disabled){background:var(--surface-2);border-color:var(--ink-4);color:var(--ink)}
+.idbtn:disabled{opacity:.5;cursor:default}
+.idbtn.primary{background:var(--brand);border-color:var(--brand);color:var(--on-brand);font-weight:600}
+.idbtn.primary:hover:not(:disabled){background:var(--brand-600);border-color:var(--brand-600);color:var(--on-brand)}
+/* 两段式确认的中间态：按钮自己变成「确认清除？」并转红 */
+.idbtn.danger{background:var(--bad-soft);border-color:var(--bad);color:var(--bad-ink);font-weight:600}
+
+/* .idbox 内部的纵向节奏：只在这里写，免得每个块都要挂行内样式 */
+.idbox .idhint2 + .idrow,
+.idbox .idhint2 + .idbtn,
+.idbox .idta + .idbtn,
+.idbox .idbtn + .idhint2,
+.idbox .idrow + .idhint2{margin-top:10px}
+.idbox .idlbl + .idta{margin-top:5px}
+
+.idlink{
+  display:block;margin:14px 0 0;padding:0;font-size:12.5px;
+  color:var(--brand-600);text-decoration:underline;text-underline-offset:3px;
+}
+.idlink:hover{color:var(--brand)}
+.idlink + .idbox{margin-top:9px}
+
+.idwait-t{font-size:13px;font-weight:600}
+
+/* --- 16) 会话行 + 操作菜单 + 通用小对话框 ---------------------------------
+
+   ## 为什么会话行要拆成 .chat-row 套 .chat
+
+   「打开这条对话」和「更多操作」是两个独立动作，必须各是一个按钮。
+   但可交互控件不能嵌套（屏幕阅读器会把内层吞掉、焦点会打架），
+   所以外层只是个布局容器，两个按钮是兄弟。
+
+   外层 .on 是给「更多」按钮着色的 —— 它要跟着当前会话一起高亮，
+   否则选中行右边会露出一个灰按钮，像没选中。 */
+.chat-row{position:relative;display:flex;align-items:center;border-radius:var(--r-md);margin-bottom:2px;}
+.chat-row .chat{flex:1;min-width:0;margin-bottom:0;}
+.chat-row.on{background:var(--brand-soft);}
+.chat-row.on .chat{background:transparent;}
+.chat-row.on:hover{background:var(--brand-soft);}
+.chat-row:hover .chat{background:var(--surface-3);}
+.chat-row.on:hover .chat{background:var(--brand-soft-2);}
+/* 当前会话 + 键盘焦点：上面那条 `.chat-row.on .chat{background:transparent}`
+   与新加的规则同权重且写在后面，会把原有的焦点底色盖掉 —— 补一条更具体的。 */
+.chat-row.on .chat:focus-visible{background:var(--brand-soft-2)}
+
+/* 「更多」按钮：平时几乎隐形，悬停/聚焦/当前行才显形。
+   为什么不做成常驻可见：50 行每行一枚实心图标，左栏会变成一片噪点。
+   但**它始终占位**（width 固定）—— 否则悬停时行内容会左右抖一下。 */
+.chat-more{
+  flex:none;width:26px;height:26px;margin-right:3px;
+  display:flex;align-items:center;justify-content:center;
+  border-radius:var(--r-xs);color:var(--ink-4);
+  opacity:0;transition:opacity .12s,background .12s,color .12s;
+}
+.chat-row:hover .chat-more,
+.chat-row.on .chat-more,
+.chat-more:focus-visible{opacity:1;}
+.chat-more:hover{background:var(--surface-3);color:var(--ink-2);}
+.chat-more:focus-visible{outline:2px solid var(--brand);outline-offset:-2px;}
+
+/* 菜单本身。fixed 定位由 JS 算（贴着按钮，超出视口翻到上方）。 */
+.cmenu{
+  position:fixed;z-index:130;min-width:186px;padding:4px;
+  background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--r-sm);box-shadow:var(--sh-3);
+}
+.cmenu[hidden]{display:none}
+.cmenu-item{
+  display:block;width:100%;text-align:left;
+  padding:7px 10px;border-radius:var(--r-xs);
+  font-size:12.5px;color:var(--ink);transition:background .1s,color .1s;
+}
+.cmenu-item:hover:not(:disabled){background:var(--surface-3)}
+.cmenu-item:focus-visible{outline:2px solid var(--brand);outline-offset:-2px;background:var(--surface-3)}
+/* 禁用项用更浅的灰 + 不可点。**仍然显示** —— 藏起来的话用户不知道
+   这个功能存在，只会觉得「这软件怎么连重命名都没有」。 */
+.cmenu-item:disabled{color:var(--ink-4);cursor:default}
+.cmenu-item.danger{color:var(--bad-ink)}
+.cmenu-item.danger:hover:not(:disabled){background:var(--bad-soft)}
+.cmenu-sep{height:1px;margin:4px 6px;background:var(--line-2)}
+
+/* 顶栏的「重置熔断」：琥珀色，和绿色的运行状态区分开 */
+.ghost.warn{color:var(--warn-ink);border-color:var(--warn);background:var(--warn-soft)}
+.ghost.warn:hover{background:var(--warn-soft);border-color:var(--warn-ink);color:var(--warn-ink)}
+
+/* --- 通用小对话框（重命名 / 删除确认）------------------------------------
+   骨架复用 .mask / .idcard，只补三处：更窄、正文保留换行、输入框。 */
+.dlgcard{width:460px}
+/* 删除确认的文案里有 \n\n 分段（「本地这条会怎样」是另一段）。
+   默认 white-space 会把它们压成一行，读起来像一大坨。 */
+#dlgText{white-space:pre-wrap}
+.dlginput{
+  width:100%;margin-top:10px;height:34px;
+  border:1px solid var(--line);border-radius:var(--r-sm);
+  background:var(--surface);padding:0 10px;
+  font:inherit;font-size:13px;color:var(--ink);
+}
+.dlginput:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-soft)}
+.dlginput[hidden]{display:none}
+/* 危险动作的主按钮转红：删除不该和「保存」长得一样。
+   前景用 --on-brand 而不是写死 #fff —— 深色主题下 --bad 是浅红
+   (#F26B6B)，白字压上去只有 2.3:1，而 --on-brand 在深色下是深色
+   (#0E1A26)，对比度 6.9:1。这正是品牌按钮同一条规则。 */
+.idbtn.primary.danger{background:var(--bad);border-color:var(--bad);color:var(--on-brand)}
+.idbtn.primary.danger:hover:not(:disabled){background:var(--bad-ink);border-color:var(--bad-ink);color:var(--on-brand)}
+
+.idmsg{
+  margin:14px 0 0;padding:9px 11px;border-radius:var(--r-xs);
+  font-size:12px;line-height:1.65;white-space:pre-wrap;word-break:break-word;
+}
+.idmsg.ok{background:var(--ok-soft);color:var(--ok-ink)}
+.idmsg.bad{background:var(--bad-soft);color:var(--bad-ink)}
+
+/* --- 16) 页脚身份入口 -------------------------------------------------------
+   整块「头像 + 名字」做成按钮。未登录时加 .warn：名字变成「未登录 · 点此登录」，
+   底色转琥珀 —— 凭据失效时用户第一眼就能看到出口在哪。 */
+.sfid{
+  flex:1;min-width:0;display:flex;align-items:center;gap:9px;
+  padding:4px 6px;border-radius:var(--r-sm);text-align:left;transition:.12s;
+}
+.sfid:hover{background:var(--surface-3)}
+.sfid.warn .nm{color:var(--warn-ink)}
+.sfid.warn .avatar{background:var(--warn-soft);color:var(--warn-ink)}
+
+/* ============================ 朗读音色面板 ============================
+
+   从 .side-foot 向上弹出。为什么向上而不是向下：按钮贴在窗口左下角，
+   向下弹会有一半落到窗口外面。
+
+   `bottom:calc(100% + 6px)` 里的 6px 是箭头感留白 —— 面板紧贴按钮时
+   视觉上会糊成一块，看不出是从哪弹出来的。 */
+.voice-pop{
+  position:absolute; left:6px; bottom:calc(100% + 6px);
+  width:246px; z-index:40;
+  background:var(--surface); border:1px solid var(--line);
+  border-radius:var(--r-lg); box-shadow:var(--sh-3);
+  overflow:hidden;
+  /* 出现时轻微上浮，比直接闪出来柔和。禁用动效的用户走 media query 关掉。 */
+  animation:vp-in .12s ease-out;
+}
+@keyframes vp-in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.voice-pop{animation:none}}
+
+.vp-head{
+  display:flex;align-items:center;gap:8px;
+  padding:9px 10px 8px 12px;border-bottom:1px solid var(--line-2);
+}
+.vp-title{flex:1;font-size:12.5px;font-weight:650;color:var(--ink-2)}
+.vp-close{
+  display:flex;align-items:center;justify-content:center;
+  width:20px;height:20px;border-radius:var(--r-xs);
+  color:var(--ink-4);background:transparent;border:0;cursor:pointer;
+}
+.vp-close:hover{background:var(--surface-3);color:var(--ink-2)}
+
+.vp-body{padding:5px;max-height:290px;overflow:auto}
+/* 写请求在飞的时候整块半透明 + 禁点 —— 连点两个音色会发出两次写，
+   后到的结果可能盖掉先到的，最后选中哪个取决于网络顺序。 */
+.vp-body.busy{opacity:.55;pointer-events:none}
+
+.vp-hint,.vp-err{padding:12px 8px;font-size:12px;color:var(--ink-4);text-align:center}
+.vp-err{color:var(--bad);text-align:left;line-height:1.5}
+
+.vp-item{
+  display:flex;align-items:flex-start;gap:8px;width:100%;
+  padding:8px 9px;border:0;border-radius:var(--r-sm);
+  background:transparent;cursor:pointer;text-align:left;
+  color:var(--ink);
+}
+.vp-item:hover{background:var(--surface-2)}
+.vp-item.on{background:var(--brand-soft)}
+.vp-main{flex:1;min-width:0}
+.vp-name{display:block;font-size:13px;font-weight:600;color:var(--ink)}
+.vp-item.on .vp-name{color:var(--brand-ink)}
+.vp-meta{display:flex;flex-wrap:wrap;gap:4px;margin-top:3px}
+.vp-tag{
+  font-size:10.5px;line-height:1.5;padding:0 5px;border-radius:var(--r-full);
+  background:var(--surface-3);color:var(--ink-3);
+}
+.vp-item.on .vp-tag{background:var(--brand-soft-2);color:var(--brand-ink)}
+.vp-desc{
+  font-size:10.5px;line-height:1.5;color:var(--ink-4);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;
+}
+.vp-tick{flex:none;color:var(--brand);margin-top:2px}
+
+.vp-foot{
+  padding:7px 12px 9px;border-top:1px solid var(--line-2);
+  font-size:10.5px;line-height:1.5;color:var(--ink-4);
+}

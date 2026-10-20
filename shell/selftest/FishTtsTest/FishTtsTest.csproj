@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    FishTts 的离线自测。
+    **不引用 WPF**：被测类只依赖 System.Net.Http / System.IO / System.Text.Json。
+    测试全程不联网 —— 只验证纯函数（Markdown 清洗、错误文案、配置读写）。
+    真正的联网路径由手工验证覆盖（见 docs 里的验证记录）。
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>DeepSeekAgent.SelfTest</RootNamespace>
+    <AssemblyName>FishTtsTest</AssemblyName>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Program.cs" />
+    <Compile Include="..\..\Shared\FishTts.cs" Link="Shared\FishTts.cs" />
+  </ItemGroup>
+
+</Project>

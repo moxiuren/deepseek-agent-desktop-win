@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    LogRetention 的离线自测。
+    与 StatusLogThrottleTest 同样不引用 WPF —— 被测类只依赖 System.IO，
+    因此普通 net8.0 控制台程序即可。
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>DeepSeekAgent.SelfTest</RootNamespace>
+    <AssemblyName>LogRetentionTest</AssemblyName>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Program.cs" />
+    <Compile Include="..\..\Shared\LogRetention.cs"
+             Link="Shared\LogRetention.cs" />
+  </ItemGroup>
+
+</Project>

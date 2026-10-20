@@ -1,0 +1,9 @@
+<Application x:Class="DeepSeekAgent.Desktop.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!--
+    不用 StartupUri：窗口在 OnStartup 里手动创建（要先建 Host 再建窗口，
+    顺序反了的话窗口构造函数里取 App.Host 会是 null）。
+  -->
+  <Application.Resources/>
+</Application>

@@ -1,0 +1,56 @@
+# ruff.toml — Python 静态检查统一配置
+# 放到项目根目录，配合 `ruff check .` 与 `ruff format .` 使用
+# 安装: pip install ruff
+
+target-version = "py311"
+line-length = 100
+
+# `docs/evidence/` 是**取证快照**：那些脚本记录的是「某个时点的实测行为」，
+# 是证据链的一部分。为了 lint 去改它们，等于篡改证据 —— 且它们不参与构建、
+# 不被任何代码 import。排除掉，别让噪声淹没真正在维护的代码。
+extend-exclude = ["docs/evidence"]
+
+[lint]
+# E/W pycodestyle  F pyflakes  I isort  UP pyupgrade
+# B bugbear  C4 comprehension  SIM simplify  RUF ruff 特定规则
+# E402 / BLE001 显式列出，理由同下：项目里已有 86 处 `# noqa: E402`
+# 与 53 处 `# noqa: BLE001`，规则不启用时那些 noqa 反而全变成 RUF100 噪声。
+# 启用它们是有意义的 —— BLE001 强制每处裸 except 都写明「为什么敢吞」，
+# 本仓库的 except 确实都写了注释，这条规则守的正是这个习惯。
+select = ["E", "E402", "F", "W", "I", "UP", "B", "BLE001", "C4", "SIM", "RUF"]
+ignore = [
+    "E501",   # 行宽交给 formatter
+    "B008",   # 允许函数默认参数里的调用（FastAPI 依赖注入等）
+    # 本仓库是**中文注释/文档字符串**为主的代码库，全角标点（，。（）：；「」等）
+    # 是刻意的排版，不是笔误。RUF001/2/3 会把它们全报成「歧义 Unicode」，
+    # 在中文项目里是纯噪声 —— 关掉，否则 207 条告警里有 202 条是假的。
+    "RUF001",
+    "RUF002",
+    "RUF003",
+    # Windows 环境变量的**规范拼写**就是 `ProgramFiles` / `ProgramFiles(x86)`
+    # （微软文档与注册表项都用这个大小写）。Windows 的环境变量查找本身不区分
+    # 大小写，所以改写成全大写不会「更对」，只会让读代码的人以为在查 Unix 变量。
+    "SIM112",
+    # B023 报的是 agent.py 主循环里 `on_delta` / `on_thought` / `_flush_thought`
+    # / `_wait_heartbeat` 捕获循环变量。这四条闭包**每轮重新定义**，生命周期
+    # 严格限制在本轮 `transport.send()` 内（`heartbeat` 在 finally 里 cancel），
+    # 不存在「循环走完了旧闭包还在跑」的情形 —— 按引用捕获是安全的。
+    # 逐个 `= think` 默认参数绑定反而会让代码更难读，且容易漏掉某一个变量。
+    "B023",
+]
+
+[lint.per-file-ignores]
+"__init__.py" = ["F401"]      # 允许 re-export
+# 测试脚本全部是「先 sys.path.insert，再 import 引擎模块」的独立脚本，
+# E402 是必然的（86 处 `# noqa: E402` 已是全项目范式）。B011 允许 assert False。
+#
+# ★ 路径**相对本配置文件所在目录**（项目根），不是相对 cwd，也不是相对
+#   Python 包。测试实际在 `engine/tests/`，所以必须写 `engine/tests/**` ——
+#   只写 `tests/**` 时这些文件一条都匹配不上，per-file-ignore 形同虚设，
+#   于是 E402 会一路报出来（实测踩过）。
+"engine/tests/**" = ["B011", "E402"]
+
+[format]
+quote-style = "preserve"
+indent-style = "space"
+line-ending = "lf"
