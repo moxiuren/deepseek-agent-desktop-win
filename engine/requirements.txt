@@ -1,0 +1,14 @@
+curl_cffi>=0.16
+websockets>=13
+
+# Gemini 档位（`transport = "gemini_rpc"`）的协议实现。
+#
+# **为什么放在这里而不是让用户手动装**：`transport/__init__.py` 的 gemini 分支
+# 是惰性导入，缺包时会在 `_ensure_client()` 抛一条明确的 TransportError ——
+# 那条错误是给「漏装」兜底的，不是让用户按提示自己补。CI 跑 `pip install -r`
+# 时若不装它，`test_gemini_transport.py` 仍然能过（它用 fake client 绕开导入），
+# 于是「测试全绿但功能起不来」—— 那正是最难查的一类。
+#
+# 版本下限 2.1.1：2.1.0 及以前 `generate_content_stream()` 不接受 `extended_thinking`
+# 形参，而 `gemini_rpc.py:715` 依赖它。
+gemini-webapi>=2.1.1
